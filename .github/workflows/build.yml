@@ -27,13 +27,13 @@ jobs:
           cp -rn temp_extracted/* . 2>/dev/null || true
         fi
 
-    - name: Create Dummy google-services.json & .env
+    - name: Create Matching google-services.json & .env
       run: |
         if [ ! -f ".env.example" ]; then touch .env.example; fi
         if [ ! -f "app/.env.example" ]; then touch app/.env.example 2>/dev/null || true; fi
-        if [ ! -f "app/google-services.json" ]; then 
-          echo '{"project_info":{"project_number":"0","project_id":"dummy"},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.example"}},"api_key":[{"current_key":"dummy"}]}]}' > app/google-services.json
-        fi
+        
+        # Exact package name match kar diya hai
+        echo '{"project_info":{"project_number":"123456789","project_id":"devforge-app"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456","android_client_info":{"package_name":"com.aistudio.devforge.lhryqz"}},"api_key":[{"current_key":"dummy_key"}]}]}' > app/google-services.json
 
     - name: Generate Debug Keystore
       run: |
