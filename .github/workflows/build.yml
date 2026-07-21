@@ -15,7 +15,21 @@ jobs:
 
     - name: Unzip DevForge Source
       run: |
-        unzip -o DevForge.zip -d .
+        sudo apt-get install -y unzip
+        # Zip file ko unzip karo (case-insensitive check)
+        ZIP_FILE=$(ls *.zip 2>/dev/null | head -n 1)
+        if [ -n "$ZIP_FILE" ]; then
+          echo "Extracting $ZIP_FILE..."
+          unzip -o "$ZIP_FILE" -d extracted/
+          # Move files to root directory
+          if [ -d "extracted/DevForge" ]; then
+            cp -rn extracted/DevForge/* .
+          else
+            cp -rn extracted/* .
+          fi
+        else
+          echo "No zip file found!"
+        fi
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -27,7 +41,10 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Make Gradle Executable
-      run: chmod +x gradlew
+      run: |
+        if [ -f "gradlew" ]; then
+          chmod +x gradlew
+        fi
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
