@@ -13,18 +13,32 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Extract Zip File
+    - name: Extract Zip File (Including Hidden Files)
       run: |
         echo "Unzipping devforge.zip..."
         unzip -o devforge.zip -d temp_extracted/
         
-        # Zip ke andar root folder search karke files move kar rahe hain
+        # Hidden files (.env wagara) ke sath copy karega
         if [ -d "temp_extracted/DevForge" ]; then
-          cp -rn temp_extracted/DevForge/* .
+          cp -rn temp_extracted/DevForge/.[!.]* . 2>/dev/null || true
+          cp -rn temp_extracted/DevForge/* . 2>/dev/null || true
         elif [ -d "temp_extracted/devforge" ]; then
-          cp -rn temp_extracted/devforge/* .
+          cp -rn temp_extracted/devforge/.[!.]* . 2>/dev/null || true
+          cp -rn temp_extracted/devforge/* . 2>/dev/null || true
         else
-          cp -rn temp_extracted/* .
+          cp -rn temp_extracted/.[!.]* . 2>/dev/null || true
+          cp -rn temp_extracted/* . 2>/dev/null || true
+        fi
+
+    - name: Create Missing .env.example File
+      run: |
+        # Agar fir bhi .env.example nahi mila, toh empty file banayega
+        if [ ! -f ".env.example" ]; then
+          echo "Creating missing .env.example file..."
+          touch .env.example
+        fi
+        if [ ! -f "app/.env.example" ]; then
+          touch app/.env.example 2>/dev/null || true
         fi
 
     - name: Set up JDK 17
@@ -39,7 +53,7 @@ jobs:
     - name: Ensure Gradlew Exists
       run: |
         if [ ! -f "gradlew" ]; then
-          echo "gradlew not found, generating wrapper..."
+          echo "Generating gradle wrapper..."
           gradle wrapper
         fi
         chmod +x gradlew
