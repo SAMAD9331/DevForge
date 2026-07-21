@@ -13,18 +13,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Extract Project Files
+    - name: Extract Zip File
       run: |
-        # Devforge zip find and unzip
-        unzip -q devforge.zip -d extracted_files/
+        echo "Unzipping devforge.zip..."
+        unzip -o devforge.zip -d temp_extracted/
         
-        # Move extracted files to root directory
-        if [ -d "extracted_files/DevForge" ]; then
-          cp -rn extracted_files/DevForge/* .
-        elif [ -d "extracted_files/devforge" ]; then
-          cp -rn extracted_files/devforge/* .
+        # Zip ke andar root folder search karke files move kar rahe hain
+        if [ -d "temp_extracted/DevForge" ]; then
+          cp -rn temp_extracted/DevForge/* .
+        elif [ -d "temp_extracted/devforge" ]; then
+          cp -rn temp_extracted/devforge/* .
         else
-          cp -rn extracted_files/* .
+          cp -rn temp_extracted/* .
         fi
 
     - name: Set up JDK 17
@@ -36,8 +36,13 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Make Gradle Executable
-      run: chmod +x gradlew || true
+    - name: Ensure Gradlew Exists
+      run: |
+        if [ ! -f "gradlew" ]; then
+          echo "gradlew not found, generating wrapper..."
+          gradle wrapper
+        fi
+        chmod +x gradlew
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
@@ -47,3 +52,4 @@ jobs:
       with:
         name: DevForge-App
         path: app/build/outputs/apk/debug/app-debug.apk
+        
