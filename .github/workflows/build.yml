@@ -1,3 +1,4 @@
+        
 name: Build DevForge APK
 
 on:
@@ -13,32 +14,20 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Extract Zip File
+    - name: Extract Zip into Root Directory
       run: |
-        unzip -o devforge.zip -d temp_extracted/
-        if [ -d "temp_extracted/DevForge" ]; then
-          cp -rn temp_extracted/DevForge/.[!.]* . 2>/dev/null || true
-          cp -rn temp_extracted/DevForge/* . 2>/dev/null || true
-        elif [ -d "temp_extracted/devforge" ]; then
-          cp -rn temp_extracted/devforge/.[!.]* . 2>/dev/null || true
-          cp -rn temp_extracted/devforge/* . 2>/dev/null || true
+        if [ -f "devforge.zip" ]; then
+          echo "Extracting devforge.zip directly..."
+          unzip -o devforge.zip -d .
         else
-          cp -rn temp_extracted/.[!.]* . 2>/dev/null || true
-          cp -rn temp_extracted/* . 2>/dev/null || true
+          echo "devforge.zip not found, skipping extraction."
         fi
 
-    - name: Create Matching google-services.json & .env
+    - name: Ensure Executable Permissions & Files Structure
       run: |
-        if [ ! -f ".env.example" ]; then touch .env.example; fi
-        if [ ! -f "app/.env.example" ]; then touch app/.env.example 2>/dev/null || true; fi
-        
-        # Exact package name match kar diya hai
-        echo '{"project_info":{"project_number":"123456789","project_id":"devforge-app"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456","android_client_info":{"package_name":"com.aistudio.devforge.lhryqz"}},"api_key":[{"current_key":"dummy_key"}]}]}' > app/google-services.json
-
-    - name: Generate Debug Keystore
-      run: |
-        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-        cp debug.keystore app/debug.keystore 2>/dev/null || true
+        if [ -f "gradlew" ]; then
+          chmod +x gradlew
+        fi
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -49,7 +38,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Ensure Gradlew Exists
+    - name: Ensure Gradlew Wrapper Exists
       run: |
         if [ ! -f "gradlew" ]; then
           gradle wrapper
@@ -57,11 +46,10 @@ jobs:
         chmod +x gradlew
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: DevForge-App
-        path: app/build/outputs/apk/debug/app-debug.apk
-        
+        path: app/build/outputs/apk/debug/*.apk
