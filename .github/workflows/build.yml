@@ -1,4 +1,3 @@
-        
 name: Build DevForge APK
 
 on:
@@ -14,19 +13,10 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Extract Zip into Root Directory
+    - name: Extract Zip File (if exists)
       run: |
         if [ -f "devforge.zip" ]; then
-          echo "Extracting devforge.zip directly..."
           unzip -o devforge.zip -d .
-        else
-          echo "devforge.zip not found, skipping extraction."
-        fi
-
-    - name: Ensure Executable Permissions & Files Structure
-      run: |
-        if [ -f "gradlew" ]; then
-          chmod +x gradlew
         fi
 
     - name: Set up JDK 17
@@ -34,6 +24,12 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+
+    # 🔑 YE STEP ADD KARNA ZARURI HAI (Aapke screenshot mein ye miss tha)
+    - name: Generate Debug Keystore
+      run: |
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        cp debug.keystore app/debug.keystore 2>/dev/null || true
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
