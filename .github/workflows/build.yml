@@ -35,7 +35,7 @@ jobs:
       with:
         gradle-version: '8.7'
 
-    - name: Ensure Gradlew Exists
+    - name: Ensure Gradlew Wrapper Exists
       run: |
         gradle wrapper --gradle-version 8.7
         chmod +x gradlew
